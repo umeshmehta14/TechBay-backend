@@ -13,6 +13,8 @@ import {
   registerUser,
   removeProductFromCart,
   removeProductFromWishlist,
+  removeUserAddress,
+  updateAddress,
   updateCartQuantity,
 } from "../controllers/user.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -43,6 +45,10 @@ userRouter
 userRouter.route("/clear/cart").patch(verifyJwt, clearCart);
 
 userRouter.route("/add/address").patch(verifyJwt, addUserAddress);
+userRouter
+  .route("/remove/address/:addressId")
+  .patch(verifyJwt, removeUserAddress);
+userRouter.route("/update/address/:addressId").patch(verifyJwt, updateAddress);
 userRouter.route("/address").get(verifyJwt, getUserAddress);
 
 export default userRouter;
