@@ -252,6 +252,20 @@ const clearWishlist = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "wishlist cleared successfully"));
 });
 
+const getUserCart = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user?._id).populate("cart");
+
+  if (!user) {
+    throw new ApiError(500, "something went wrong while fetching cart");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, { cart: user.cart }, "cart fetched successfully")
+    );
+});
+
 export {
   registerUser,
   loginUser,
@@ -260,4 +274,5 @@ export {
   getUserWishlist,
   removeProductFromWishlist,
   clearWishlist,
+  getUserCart,
 };

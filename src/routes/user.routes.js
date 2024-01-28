@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   addProductToWishlist,
   clearWishlist,
+  getUserCart,
   getUserWishlist,
   loginUser,
   logoutUser,
@@ -24,5 +25,7 @@ userRouter
   .route("/remove/wishlist/:productId")
   .patch(verifyJwt, removeProductFromWishlist);
 userRouter.route("/clear/wishlist").patch(verifyJwt, clearWishlist);
+
+userRouter.route("/cart").get(verifyJwt, getUserCart);
 
 export default userRouter;
