@@ -1,3 +1,4 @@
+import { isValidObjectId } from "mongoose";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -143,4 +144,120 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logout seccessfully"));
 });
 
-export { registerUser, loginUser, logoutUser };
+const getUserWishlist = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user?._id).populate("wishlist");
+
+  if (!user) {
+    throw new ApiError(500, "something went wrong while fetching wishlist");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { wishlist: user.wishlist },
+        "wishlist fetched successfully"
+      )
+    );
+});
+
+const addProductToWishlist = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  if (!productId) {
+    throw new ApiError(400, "Product id is required");
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new ApiError(400, "Product id is not valid");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $addToSet: {
+        wishlist: productId,
+      },
+    },
+    { new: true }
+  ).populate("wishlist");
+
+  if (!user) {
+    throw new ApiError(
+      500,
+      "something went wrong while adding product to wishlist"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { wishlist: user.wishlist },
+        "product inserted successfully"
+      )
+    );
+});
+
+const removeProductFromWishlist = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  if (!productId) {
+    throw new ApiError(400, "Product id is required");
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new ApiError(400, "Product id is not valid");
+  }
+
+  const wishlist = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $pull: {
+        wishlist: productId,
+      },
+    },
+    { new: true }
+  );
+
+  if (!wishlist) {
+    throw new ApiError(500, "something went wrong while removing product");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "product removed successfully"));
+});
+
+const clearWishlist = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        wishlist: [],
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  if (!user) {
+    throw new ApiError(500, "something went wrong while clearing wishlist");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "wishlist cleared successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  addProductToWishlist,
+  getUserWishlist,
+  removeProductFromWishlist,
+  clearWishlist,
+};
