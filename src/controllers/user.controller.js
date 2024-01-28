@@ -1,4 +1,4 @@
-import mongoose, { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -78,8 +78,7 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         201,
-        createdUser,
-        accessToken,
+        { createdUser, accessToken },
         "user created successfully"
       )
     );
@@ -405,6 +404,55 @@ const clearCart = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "cart cleared successfully"));
 });
 
+const addUserAddress = asyncHandler(async (req, res) => {
+  const { name, address, mobile, city, state, pincode, alternatemobile, type } =
+    req.body;
+  const userId = req.user?._id;
+
+  if (
+    [name, address, mobile, city, state, pincode, alternatemobile, type].some(
+      (field) => (typeof field === "number" ? !field : field?.trim() === "")
+    )
+  ) {
+    throw new ApiError(
+      400,
+      "All address fields are required and cannot be empty"
+    );
+  }
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const newAddress = {
+    name,
+    address,
+    mobile,
+    city,
+    state,
+    pincode,
+    alternatemobile,
+    type,
+  };
+
+  user.addresses.push(newAddress);
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, user?.addresses, "Address added successfully"));
+});
+
+const getUserAddress = asyncHandler(async (req, res) => {
+  const { addresses } = req.user;
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, addresses || [], "User Address fetched successfully")
+    );
+});
+
 export {
   registerUser,
   loginUser,
@@ -418,4 +466,6 @@ export {
   updateCartQuantity,
   removeProductFromCart,
   clearCart,
+  addUserAddress,
+  getUserAddress,
 };
