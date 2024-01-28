@@ -114,6 +114,16 @@ const userSchema = new Schema(
       },
     ],
     addresses: [addressSchema],
+    orders: [
+      {
+        address: { type: Schema.Types.ObjectId },
+        paymentId: {
+          type: String,
+          required: true,
+        },
+        products: [],
+      },
+    ],
     refreshToken: {
       type: String,
     },
