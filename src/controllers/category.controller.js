@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const getAllCategory = asyncHandler(async (req, res) => {
+const getAllCategory = asyncHandler(async (_, res) => {
   const categories = await Category.find();
   if (!categories)
     throw new ApiError(500, "something went wrong while fetching categories");
