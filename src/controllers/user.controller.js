@@ -1,4 +1,4 @@
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -253,7 +253,7 @@ const clearWishlist = asyncHandler(async (req, res) => {
 });
 
 const getUserCart = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user?._id).populate("cart");
+  const user = await User.findById(req.user?._id).populate("cart.product");
 
   if (!user) {
     throw new ApiError(500, "something went wrong while fetching cart");
@@ -266,6 +266,145 @@ const getUserCart = asyncHandler(async (req, res) => {
     );
 });
 
+const addProductToCart = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  if (!productId) {
+    throw new ApiError(400, "Product id is required");
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new ApiError(400, "Product id is not valid");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $addToSet: {
+        cart: { product: productId },
+      },
+    },
+    { new: true }
+  ).populate("cart.product");
+
+  if (!user) {
+    throw new ApiError(
+      500,
+      "something went wrong while adding product to cart"
+    );
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, { cart: user.cart }, "product inserted successfully")
+    );
+});
+
+const removeProductFromCart = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  if (!productId) {
+    throw new ApiError(400, "Product id is required");
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new ApiError(400, "Product id is not valid");
+  }
+
+  const cart = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $pull: {
+        cart: { product: productId },
+      },
+    },
+    { new: true }
+  );
+
+  if (!cart) {
+    throw new ApiError(500, "something went wrong while removing product");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "product removed successfully"));
+});
+
+const updateCartQuantity = asyncHandler(async (req, res) => {
+  const { productId, type } = req.params;
+
+  if (!productId) {
+    throw new ApiError(400, "Product id is required");
+  }
+
+  if (!isValidObjectId(productId)) {
+    throw new ApiError(400, "Product id is not valid");
+  }
+
+  if (!["increment", "decrement"].includes(type.toString())) {
+    throw new ApiError(
+      400,
+      "Sorted type must be one of increment or decrement"
+    );
+  }
+
+  const user = await User.findById(req.user?._id);
+
+  const inCart = user?.cart?.find(
+    ({ product }) => product.toString() === productId
+  );
+  if (!inCart) {
+    throw new ApiError(400, "product not found");
+  }
+
+  if (type === "increment") {
+    if (inCart.quantity === 10) {
+      throw new ApiError(
+        400,
+        "Maximum allowed quantity for this product is 10"
+      );
+    }
+    inCart.quantity += 1;
+  } else {
+    if (inCart.quantity === 1) {
+      throw new ApiError(400, "quantity cannot be negative");
+    }
+    inCart.quantity -= 1;
+  }
+
+  await user.save({ validateBeforeSave: false });
+
+  await user.populate("cart.product");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, user?.cart, "Cart quantity updated successfully")
+    );
+});
+
+const clearCart = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        cart: [],
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  if (!user) {
+    throw new ApiError(500, "something went wrong while clearing cart");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "cart cleared successfully"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -275,4 +414,8 @@ export {
   removeProductFromWishlist,
   clearWishlist,
   getUserCart,
+  addProductToCart,
+  updateCartQuantity,
+  removeProductFromCart,
+  clearCart,
 };

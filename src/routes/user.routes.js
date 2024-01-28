@@ -1,13 +1,17 @@
 import { Router } from "express";
 import {
+  addProductToCart,
   addProductToWishlist,
+  clearCart,
   clearWishlist,
   getUserCart,
   getUserWishlist,
   loginUser,
   logoutUser,
   registerUser,
+  removeProductFromCart,
   removeProductFromWishlist,
+  updateCartQuantity,
 } from "../controllers/user.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 
@@ -27,5 +31,13 @@ userRouter
 userRouter.route("/clear/wishlist").patch(verifyJwt, clearWishlist);
 
 userRouter.route("/cart").get(verifyJwt, getUserCart);
+userRouter.route("/add/cart/:productId").patch(verifyJwt, addProductToCart);
+userRouter
+  .route("/remove/cart/:productId")
+  .patch(verifyJwt, removeProductFromCart);
+userRouter
+  .route("/update-quantity/cart/:type/:productId")
+  .patch(verifyJwt, updateCartQuantity);
+userRouter.route("/clear/cart").patch(verifyJwt, clearCart);
 
 export default userRouter;
