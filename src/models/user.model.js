@@ -121,7 +121,21 @@ const userSchema = new Schema(
           type: String,
           required: true,
         },
-        products: [],
+        products: [
+          {
+            product: { type: Schema.Types.ObjectId, ref: "Product" },
+            quantity: {
+              type: Number,
+              min: 1,
+              max: 10,
+              default: 1,
+            },
+          },
+        ],
+        amount: {
+          type: Number,
+          required: true,
+        },
       },
     ],
     refreshToken: {

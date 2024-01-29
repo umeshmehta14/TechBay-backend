@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  addOrder,
   addProductToCart,
   addProductToWishlist,
   addUserAddress,
@@ -52,5 +53,7 @@ userRouter
   .patch(verifyJwt, removeUserAddress);
 userRouter.route("/update/address/:addressId").patch(verifyJwt, updateAddress);
 userRouter.route("/address").get(verifyJwt, getUserAddress);
+
+userRouter.route("/add/order").patch(verifyJwt, addOrder);
 
 export default userRouter;

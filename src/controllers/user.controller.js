@@ -551,6 +551,47 @@ const updateAddress = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user.addresses, "Address updated successfully"));
 });
 
+const addOrder = asyncHandler(async (req, res) => {
+  const { id, orderList, amount, address } = req.body;
+  const userId = req.user?._id;
+
+  if (orderList?.length === 0) {
+    throw new ApiError(400, "Please add items to the order before placing it.");
+  }
+
+  if (
+    [id, amount, address].some((field) =>
+      typeof field === "number" ? !field : field?.trim() === ""
+    )
+  ) {
+    throw new ApiError(
+      400,
+      "All address fields are required and cannot be empty"
+    );
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const newOrder = {
+    address: address,
+    paymentId: id,
+    products: orderList,
+    amount: amount,
+  };
+
+  user.orders.push(newOrder);
+
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, newOrder, "Order placed successfully."));
+});
+
 export {
   registerUser,
   loginUser,
@@ -569,4 +610,5 @@ export {
   getUserAddress,
   removeUserAddress,
   updateAddress,
+  addOrder,
 };
