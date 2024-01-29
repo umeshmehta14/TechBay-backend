@@ -411,7 +411,7 @@ const clearCart = asyncHandler(async (req, res) => {
 });
 
 const addOrder = asyncHandler(async (req, res) => {
-  const { id, orderList, amount, address } = req.body;
+  const { paymentId, orderList, amount, address } = req.body;
   const userId = req.user?._id;
 
   if (orderList?.length === 0) {
@@ -419,7 +419,7 @@ const addOrder = asyncHandler(async (req, res) => {
   }
 
   if (
-    [id, amount, address].some((field) =>
+    [paymentId, amount, address].some((field) =>
       typeof field === "number" ? !field : field?.trim() === ""
     )
   ) {
@@ -437,12 +437,10 @@ const addOrder = asyncHandler(async (req, res) => {
 
   const newOrder = {
     address: address,
-    paymentId: id,
+    paymentId: paymentId,
     products: orderList,
     amount: amount,
   };
-
-  user.orders.push(newOrder);
 
   await user.save({ validateBeforeSave: false });
 
@@ -454,11 +452,61 @@ const addOrder = asyncHandler(async (req, res) => {
 const getOrder = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
 
-  const user = await User.findById(userId);
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(userId),
+      },
+    },
+
+    {
+      $lookup: {
+        from: "addresses",
+        localField: "orders.address",
+        foreignField: "_id",
+        as: "orders.address",
+        pipeline: [
+          {
+            $project: {
+              address: 1,
+              city: 1,
+              state: 1,
+              alternatemobile: 1,
+              mobile: 1,
+              pincode: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "orders.products.product",
+        foreignField: "_id",
+        as: "orders.products.product",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              image: 1,
+              title: 1,
+              price: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$orders",
+    },
+  ]);
+
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  await user.populate("orders.address");
+
+  console.log(user);
 
   return res
     .status(200)

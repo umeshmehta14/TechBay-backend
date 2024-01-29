@@ -43,30 +43,6 @@ const userSchema = new Schema(
         ref: "Product",
       },
     ],
-    orders: [
-      {
-        address: { type: Schema.Types.ObjectId, ref: "Address" },
-        paymentId: {
-          type: String,
-          required: true,
-        },
-        products: [
-          {
-            product: { type: Schema.Types.ObjectId, ref: "Product" },
-            quantity: {
-              type: Number,
-              min: 1,
-              max: 10,
-              default: 1,
-            },
-          },
-        ],
-        amount: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
     refreshToken: {
       type: String,
     },
