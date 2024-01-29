@@ -1,5 +1,4 @@
-import { isValidObjectId } from "mongoose";
-import { User } from "../models/user.model.js";
+import mongoose, { isValidObjectId } from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -20,13 +19,8 @@ const addUserAddress = asyncHandler(async (req, res) => {
       "All address fields are required and cannot be empty"
     );
   }
-  const user = await Address.findById(userId);
-
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  const newAddress = {
+  const addedAddress = await Address.create({
+    owner: userId,
     name,
     address,
     mobile,
@@ -35,19 +29,25 @@ const addUserAddress = asyncHandler(async (req, res) => {
     pincode,
     alternatemobile,
     type,
-  };
+  });
 
-  user.addresses.push(newAddress);
-  await user.save({ validateBeforeSave: false });
+  if (!addedAddress) {
+    throw new ApiError(500, "something went wrong while adding a new address");
+  }
+
+  const existingAddress = await Address.findById(addedAddress?._id).select(
+    "-owner"
+  );
 
   return res
-    .status(200)
-    .json(new ApiResponse(200, user?.addresses, "Address added successfully"));
+    .status(201)
+    .json(
+      new ApiResponse(201, existingAddress, "Address created successfully")
+    );
 });
 
 const removeUserAddress = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
-  const userId = req.user?._id;
 
   if (!addressId) {
     throw new ApiError(400, "address id is required");
@@ -57,21 +57,7 @@ const removeUserAddress = asyncHandler(async (req, res) => {
     throw new ApiError(400, "address id is not valid");
   }
 
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  const deletedAddress = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $pull: {
-        addresses: { _id: addressId },
-      },
-    },
-    { new: true }
-  );
+  const deletedAddress = await Address.findByIdAndDelete(addressId);
 
   if (!deletedAddress) {
     throw new ApiError(500, "something went wrong while deleting address");
@@ -83,7 +69,30 @@ const removeUserAddress = asyncHandler(async (req, res) => {
 });
 
 const getUserAddress = asyncHandler(async (req, res) => {
-  const { addresses } = req.user;
+  const userId = req.user?._id;
+
+  const addresses = await Address.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        address: 1,
+        mobile: 1,
+        city: 1,
+        state: 1,
+        pincode: 1,
+        alternatemobile: 1,
+        type: 1,
+      },
+    },
+  ]);
+  if (!addresses) {
+    throw new ApiError("something went wrong while getting addresses");
+  }
   return res
     .status(200)
     .json(
@@ -95,7 +104,6 @@ const updateAddress = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
   const { name, address, mobile, city, state, pincode, alternatemobile, type } =
     req.body;
-  const userId = req.user?._id;
 
   if (!addressId) {
     throw new ApiError(400, "address id is required");
@@ -116,34 +124,30 @@ const updateAddress = asyncHandler(async (req, res) => {
     );
   }
 
-  const user = await User.findById(userId);
+  const updatedAddress = await Address.findByIdAndUpdate(
+    addressId,
+    {
+      $set: {
+        name,
+        address,
+        mobile,
+        city,
+        state,
+        pincode,
+        alternatemobile,
+        type,
+      },
+    },
+    { new: true }
+  ).select("-owner");
 
-  if (!user) {
-    throw new ApiError(404, "User not found");
+  if (!updatedAddress) {
+    throw new ApiError(500, "something went wrong while updating address");
   }
-
-  const selectedAddress = user.addresses.find(
-    (address) => address._id.toString() === addressId
-  );
-
-  if (!selectedAddress) {
-    throw new ApiError(404, "Address not found");
-  }
-
-  selectedAddress.name = name;
-  selectedAddress.address = address;
-  selectedAddress.mobile = mobile;
-  selectedAddress.city = city;
-  selectedAddress.state = state;
-  selectedAddress.pincode = pincode;
-  selectedAddress.alternatemobile = alternatemobile;
-  selectedAddress.type = type;
-
-  await user.save({ validateBeforeSave: false });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, user.addresses, "Address updated successfully"));
+    .json(new ApiResponse(200, updatedAddress, "Address updated successfully"));
 });
 
 export { addUserAddress, getUserAddress, removeUserAddress, updateAddress };

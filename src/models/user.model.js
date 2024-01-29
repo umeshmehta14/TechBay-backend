@@ -43,12 +43,6 @@ const userSchema = new Schema(
         ref: "Product",
       },
     ],
-    addresses: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Address",
-      },
-    ],
     orders: [
       {
         address: { type: Schema.Types.ObjectId, ref: "Address" },

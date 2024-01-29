@@ -1,5 +1,6 @@
 export const DB_NAME = "TechbayDB";
 export const statesData = [
+  "Moscow Pradesh",
   "Andhra Pradesh",
   "Arunachal Pradesh",
   "Assam",

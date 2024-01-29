@@ -12,8 +12,10 @@ const addressRouter = new Router();
 addressRouter.use(verifyJwt);
 
 addressRouter.route("/").get(getUserAddress);
-addressRouter.route("/add").patch(addUserAddress);
-addressRouter.route("/remove/:addressId").patch(removeUserAddress);
-addressRouter.route("/update/:addressId").patch(updateAddress);
+addressRouter.route("/add").post(addUserAddress);
+addressRouter
+  .route("/:addressId")
+  .delete(removeUserAddress)
+  .patch(updateAddress);
 
 export default addressRouter;
