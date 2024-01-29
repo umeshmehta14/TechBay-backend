@@ -7,6 +7,7 @@ import {
   clearCart,
   clearWishlist,
   getCurrentUser,
+  getOrder,
   getUserAddress,
   getUserCart,
   getUserWishlist,
@@ -55,5 +56,6 @@ userRouter.route("/update/address/:addressId").patch(verifyJwt, updateAddress);
 userRouter.route("/address").get(verifyJwt, getUserAddress);
 
 userRouter.route("/add/order").patch(verifyJwt, addOrder);
+userRouter.route("/order").get(verifyJwt, getOrder);
 
 export default userRouter;
