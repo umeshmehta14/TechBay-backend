@@ -112,7 +112,7 @@ const getOrder = asyncHandler(async (req, res) => {
     },
   ]);
 
-  if (!user) {
+  if (!orders) {
     throw new ApiError(404, "User not found");
   }
 
@@ -121,4 +121,25 @@ const getOrder = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, orders, "orders fetched successfully"));
 });
 
-export { getOrder, addOrder };
+const removeOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  if (!orderId) {
+    throw new ApiError(400, "Order Id required");
+  }
+
+  if (!isValidObjectId(orderId)) {
+    throw new ApiError(400, "Invalid order id provided");
+  }
+
+  const deletedOrder = await Order.findByIdAndDelete(orderId);
+  if (!deletedOrder) {
+    throw new ApiError(500, "something went wrong while deleting order");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Order deleted successfully"));
+});
+
+export { getOrder, addOrder, removeOrder };
