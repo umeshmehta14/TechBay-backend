@@ -1,7 +1,12 @@
 import mongoose, { Schema } from "mongoose";
+import { statesData } from "../constants.js";
 
 const addressSchema = new Schema(
   {
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
     name: {
       type: String,
       required: true,

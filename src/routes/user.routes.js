@@ -3,12 +3,10 @@ import {
   addOrder,
   addProductToCart,
   addProductToWishlist,
-  addUserAddress,
   clearCart,
   clearWishlist,
   getCurrentUser,
   getOrder,
-  getUserAddress,
   getUserCart,
   getUserWishlist,
   loginUser,
@@ -16,8 +14,6 @@ import {
   registerUser,
   removeProductFromCart,
   removeProductFromWishlist,
-  removeUserAddress,
-  updateAddress,
   updateCartQuantity,
 } from "../controllers/user.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
@@ -47,13 +43,6 @@ userRouter
   .route("/update-quantity/cart/:type/:productId")
   .patch(verifyJwt, updateCartQuantity);
 userRouter.route("/clear/cart").patch(verifyJwt, clearCart);
-
-userRouter.route("/add/address").patch(verifyJwt, addUserAddress);
-userRouter
-  .route("/remove/address/:addressId")
-  .patch(verifyJwt, removeUserAddress);
-userRouter.route("/update/address/:addressId").patch(verifyJwt, updateAddress);
-userRouter.route("/address").get(verifyJwt, getUserAddress);
 
 userRouter.route("/add/order").patch(verifyJwt, addOrder);
 userRouter.route("/order").get(verifyJwt, getOrder);

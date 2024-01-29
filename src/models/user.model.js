@@ -2,76 +2,6 @@ import jwt from "jsonwebtoken";
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 
-const statesData = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Delhi",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-];
-
-const addressSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-  mobile: {
-    type: Number,
-    required: true,
-  },
-  alternatemobile: {
-    type: Number,
-    required: true,
-  },
-  city: {
-    type: String,
-    required: true,
-  },
-  state: {
-    type: String,
-    required: true,
-    enum: statesData,
-  },
-  pincode: {
-    type: Number,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-    enum: ["Home", "Office"],
-    default: "Home",
-  },
-});
-
 const userSchema = new Schema(
   {
     username: {
@@ -113,10 +43,15 @@ const userSchema = new Schema(
         ref: "Product",
       },
     ],
-    addresses: [addressSchema],
+    addresses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Address",
+      },
+    ],
     orders: [
       {
-        address: { type: Schema.Types.ObjectId },
+        address: { type: Schema.Types.ObjectId, ref: "Address" },
         paymentId: {
           type: String,
           required: true,
