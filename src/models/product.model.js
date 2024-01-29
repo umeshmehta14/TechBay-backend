@@ -56,6 +56,13 @@ const productSchema = new Schema(
 );
 
 productSchema.plugin(mongooseAggregatePaginate);
-productSchema.index({ title: "text", description: "text" });
+productSchema.index({
+  title: "text",
+  description: "text",
+  brand: "text",
+  category: "text",
+  price: "text",
+  rating: "text",
+});
 
 export const Product = mongoose.model("Product", productSchema);
