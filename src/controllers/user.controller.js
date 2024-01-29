@@ -143,6 +143,12 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logout seccessfully"));
 });
 
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "current user fetched successfully"));
+});
+
 const getUserWishlist = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user?._id).populate("wishlist");
 
@@ -549,6 +555,7 @@ export {
   registerUser,
   loginUser,
   logoutUser,
+  getCurrentUser,
   addProductToWishlist,
   getUserWishlist,
   removeProductFromWishlist,

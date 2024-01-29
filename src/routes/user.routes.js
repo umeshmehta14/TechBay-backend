@@ -5,6 +5,7 @@ import {
   addUserAddress,
   clearCart,
   clearWishlist,
+  getCurrentUser,
   getUserAddress,
   getUserCart,
   getUserWishlist,
@@ -21,6 +22,7 @@ import { verifyJwt } from "../middlewares/auth.middleware.js";
 
 const userRouter = new Router();
 
+userRouter.route("/").get(verifyJwt, getCurrentUser);
 userRouter.route("/register").post(registerUser);
 userRouter.route("/login").post(loginUser);
 userRouter.route("/logout").get(verifyJwt, logoutUser);
