@@ -1,12 +1,10 @@
 import { Router } from "express";
 import {
-  addOrder,
   addProductToCart,
   addProductToWishlist,
   clearCart,
   clearWishlist,
   getCurrentUser,
-  getOrder,
   getUserCart,
   getUserWishlist,
   loginUser,
@@ -43,8 +41,5 @@ userRouter
   .route("/update-quantity/cart/:type/:productId")
   .patch(verifyJwt, updateCartQuantity);
 userRouter.route("/clear/cart").patch(verifyJwt, clearCart);
-
-userRouter.route("/add/order").patch(verifyJwt, addOrder);
-userRouter.route("/order").get(verifyJwt, getOrder);
 
 export default userRouter;

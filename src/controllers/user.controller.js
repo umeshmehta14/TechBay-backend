@@ -410,109 +410,6 @@ const clearCart = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "cart cleared successfully"));
 });
 
-const addOrder = asyncHandler(async (req, res) => {
-  const { paymentId, orderList, amount, address } = req.body;
-  const userId = req.user?._id;
-
-  if (orderList?.length === 0) {
-    throw new ApiError(400, "Please add items to the order before placing it.");
-  }
-
-  if (
-    [paymentId, amount, address].some((field) =>
-      typeof field === "number" ? !field : field?.trim() === ""
-    )
-  ) {
-    throw new ApiError(
-      400,
-      "All address fields are required and cannot be empty"
-    );
-  }
-
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  const newOrder = {
-    address: address,
-    paymentId: paymentId,
-    products: orderList,
-    amount: amount,
-  };
-
-  await user.save({ validateBeforeSave: false });
-
-  return res
-    .status(201)
-    .json(new ApiResponse(201, newOrder, "Order placed successfully."));
-});
-
-const getOrder = asyncHandler(async (req, res) => {
-  const userId = req.user?._id;
-
-  const user = await User.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(userId),
-      },
-    },
-
-    {
-      $lookup: {
-        from: "addresses",
-        localField: "orders.address",
-        foreignField: "_id",
-        as: "orders.address",
-        pipeline: [
-          {
-            $project: {
-              address: 1,
-              city: 1,
-              state: 1,
-              alternatemobile: 1,
-              mobile: 1,
-              pincode: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $lookup: {
-        from: "products",
-        localField: "orders.products.product",
-        foreignField: "_id",
-        as: "orders.products.product",
-        pipeline: [
-          {
-            $project: {
-              _id: 1,
-              image: 1,
-              title: 1,
-              price: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $unwind: "$orders",
-    },
-  ]);
-
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-
-  console.log(user);
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, user, "orders fetched successfully"));
-});
-
 export {
   registerUser,
   loginUser,
@@ -527,6 +424,4 @@ export {
   updateCartQuantity,
   removeProductFromCart,
   clearCart,
-  addOrder,
-  getOrder,
 };
