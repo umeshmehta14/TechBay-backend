@@ -31,6 +31,8 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
 
+  console.log({ username, email, password, confirmPassword });
+
   if (
     !(
       username?.trim() ||
@@ -51,6 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   if (password?.length < 8) {
+    console.log("i am in");
     return res.status(400).json({
       success: false,
       message: "Password must be at least 8 characters",
