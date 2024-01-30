@@ -49,11 +49,15 @@ const registerUser = asyncHandler(async (req, res) => {
   if (password?.length < 8) {
     return res
       .status(400)
-      .json(new ApiResponse(400, {}, "password must be at least 8 characters"));
+      .json(new ApiResponse(400, {}, "Password must be at least 8 characters"));
   }
 
   if (password !== confirmPassword) {
-    throw new ApiError(400, "Password and confirm password do not match");
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(400, {}, "Password and confirm password do not match")
+      );
   }
 
   const user = await User.create({
