@@ -4,45 +4,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const getAllProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 8, inStock } = req.query;
-
-  if (!Number(page) || !Number(limit))
-    throw new ApiError(400, "Invalid number");
-
-  if (Number(page) < 1 || Number(limit) < 1)
-    throw new ApiError(400, "Page and limit must be greater then 0");
-
-  const skip = (page - 1) * limit;
-  const totalProducts = await Product.countDocuments();
-  const totalPage = Math.ceil(totalProducts / Number(limit));
-
-  if (Number(page) > totalPage) {
-    throw new ApiError(400, "Requested page does not exist");
-  }
-
-  const products = await Product.find(inStock ? { inStock: true } : {})
-    .skip(skip)
-    .limit(parseInt(limit));
-
-  if (!products) {
-    throw new ApiError(500, "something went wrong while fetching products");
-  }
-
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        products,
-        totalPage,
-        currentPage: page,
-        productFetched: products?.length,
-      },
-      "All products fetched successfully"
-    )
-  );
-});
-
 const getProductById = asyncHandler(async (req, res) => {
   const { productId } = req.params;
 
@@ -63,67 +24,6 @@ const getProductById = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, product, "product fetched successfully"));
-});
-
-const getSearchedProducts = asyncHandler(async (req, res) => {
-  const { query } = req.params;
-
-  if (!query?.trim()) {
-    throw new ApiError(400, "Invalid query");
-  }
-
-  const products = await Product.aggregate([
-    {
-      $match: {
-        $or: [
-          { title: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-          { brand: { $regex: query, $options: "i" } },
-          { category: { $regex: query, $options: "i" } },
-          {
-            $expr: {
-              $lt: [
-                { $toDouble: "$price" },
-                {
-                  $cond: {
-                    if: {
-                      $regexMatch: { input: query, regex: /^\d+(\.\d+)?$/ },
-                    },
-                    then: parseFloat(query),
-                    else: 0,
-                  },
-                },
-              ],
-            },
-          },
-          {
-            $expr: {
-              $lt: [
-                { $toDouble: "$rating" },
-                {
-                  $cond: {
-                    if: {
-                      $regexMatch: { input: query, regex: /^\d+(\.\d+)?$/ },
-                    },
-                    then: parseFloat(query),
-                    else: 0,
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ]);
-
-  if (products?.length === 0) {
-    throw new ApiError(400, "No products found");
-  }
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, products, "products fetched successfully"));
 });
 
 const getFeaturedProducts = asyncHandler(async (_, res) => {
@@ -155,9 +55,112 @@ const getFeaturedProducts = asyncHandler(async (_, res) => {
     );
 });
 
-export {
-  getAllProducts,
-  getProductById,
-  getSearchedProducts,
-  getFeaturedProducts,
-};
+const filteredProducts = asyncHandler(async (req, res) => {
+  const {
+    rating,
+    categoryFilter,
+    brandFilter,
+    price,
+    trending,
+    includeOutStock,
+    arrangeType,
+    searchValue,
+    page = 1,
+    limit = 8,
+  } = req.query;
+
+  if (arrangeType && !["LTH", "HTL"].includes(arrangeType?.toString())) {
+    throw new ApiError(400, "arrangeType must be one of LTH or HTL");
+  }
+
+  if (
+    price &&
+    !["500", "1000", "2000", "3000", "4000"].includes(price?.toString())
+  ) {
+    throw new ApiError(
+      400,
+      "price must be one of 500, 1000, 2000, 3000 or 4000"
+    );
+  }
+
+  if (rating && Number(rating) > 5) {
+    throw new ApiError(400, "rating must be less than 5");
+  }
+
+  let filter = {};
+  if (!includeOutStock) {
+    filter.inStock = true;
+  }
+
+  if (trending) {
+    filter.trending = true;
+  }
+
+  if (rating) {
+    filter.rating = { $lte: parseFloat(rating) };
+  }
+
+  if (price) {
+    filter.price = { $lte: parseFloat(price) };
+  }
+
+  if (categoryFilter) {
+    filter.category = { $in: categoryFilter.split(",") };
+  }
+
+  if (brandFilter) {
+    filter.brand = { $in: brandFilter.split(",") };
+  }
+
+  if (searchValue) {
+    filter.$or = [
+      { title: { $regex: searchValue, $options: "i" } },
+      { description: { $regex: searchValue, $options: "i" } },
+      { brand: { $regex: searchValue, $options: "i" } },
+      { category: { $regex: searchValue, $options: "i" } },
+    ];
+  }
+
+  const sortOptions = {};
+  if (arrangeType) {
+    if (arrangeType === "LTH") {
+      sortOptions.price = 1;
+    } else {
+      sortOptions.price = -1;
+    }
+  }
+
+  const skip = (page - 1) * limit;
+
+  const products = await Product.find(filter);
+
+  if (!products) {
+    throw new ApiError(500, "internal server error");
+  }
+
+  const totalPage = Math.ceil(products?.length / Number(limit));
+
+  const paginatedProducts = await Product.find(filter)
+    .sort(sortOptions)
+    .skip(skip)
+    .limit(parseInt(limit));
+
+  if (!paginatedProducts) {
+    throw new ApiError(500, "internal server error");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        products: paginatedProducts,
+        totalPage,
+        currentPage: page,
+        productFetched: products?.length,
+      },
+      "products fetched successfully"
+    )
+  );
+});
+
+export { getProductById, getFeaturedProducts, filteredProducts };
