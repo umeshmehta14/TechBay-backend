@@ -39,11 +39,15 @@ const registerUser = asyncHandler(async (req, res) => {
       confirmPassword?.trim()
     )
   ) {
-    throw new ApiError(400, "Invalid credentials");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "Invalid credentials"));
   }
 
   if (!isValidEmail(email)) {
-    throw new ApiError(400, "Invalid email address");
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "Invalid email address"));
   }
 
   if (password?.length < 8) {
