@@ -39,31 +39,23 @@ const registerUser = asyncHandler(async (req, res) => {
       confirmPassword?.trim()
     )
   ) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, {}, "Invalid credentials"));
+    return res.status(400).json(new ApiError(400, "Invalid credentials"));
   }
 
   if (!isValidEmail(email)) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, {}, "Invalid email address"));
+    return res.status(400).json(new ApiError(400, "Invalid email address"));
   }
 
   if (password?.length < 8) {
-    return res.status(400).json({
-      success: false,
-      message: "Password must be at least 8 characters",
-      data: {},
-    });
+    return res
+      .status(400)
+      .json(new ApiError(400, "Password must be at least 8 characters"));
   }
 
   if (password !== confirmPassword) {
     return res
       .status(400)
-      .json(
-        new ApiError(400, {}, "Password and confirm password do not match")
-      );
+      .json(new ApiError(400, "Password and confirm password do not match"));
   }
 
   const user = await User.create({
@@ -72,7 +64,11 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
   });
   if (!user) {
-    throw new ApiError(400, "something went wrong while creating a new user");
+    return res
+      .status(400)
+      .json(
+        new ApiError(500, "something went wrong while creating a new user")
+      );
   }
 
   const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
