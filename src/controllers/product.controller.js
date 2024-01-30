@@ -4,16 +4,43 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const getAllProducts = asyncHandler(async (_, res) => {
-  const products = await Product.find();
+const getAllProducts = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 8, inStock } = req.query;
+
+  if (!Number(page) || !Number(limit))
+    throw new ApiError(400, "Invalid number");
+
+  if (Number(page) < 1 || Number(limit) < 1)
+    throw new ApiError(400, "Page and limit must be greater then 0");
+
+  const skip = (page - 1) * limit;
+  const totalProducts = await Product.countDocuments();
+  const totalPage = Math.ceil(totalProducts / Number(limit));
+
+  if (Number(page) > totalPage) {
+    throw new ApiError(400, "Requested page does not exist");
+  }
+
+  const products = await Product.find(inStock ? { inStock: true } : {})
+    .skip(skip)
+    .limit(parseInt(limit));
 
   if (!products) {
     throw new ApiError(500, "something went wrong while fetching products");
   }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, products, "All products fetched successfully"));
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        products,
+        totalPage,
+        currentPage: page,
+        productFetched: products?.length,
+      },
+      "All products fetched successfully"
+    )
+  );
 });
 
 const getProductById = asyncHandler(async (req, res) => {
@@ -99,7 +126,7 @@ const getSearchedProducts = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, products, "products fetched successfully"));
 });
 
-const getFeaturedProducts = asyncHandler(async (req, res) => {
+const getFeaturedProducts = asyncHandler(async (_, res) => {
   const featuredProductsList = [
     "65b7f8c11c6e62280db158ed",
     "65b54e16a39a3ffd12fd2c42",

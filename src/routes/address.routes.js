@@ -11,8 +11,7 @@ const addressRouter = new Router();
 
 addressRouter.use(verifyJwt);
 
-addressRouter.route("/").get(getUserAddress);
-addressRouter.route("/add").post(addUserAddress);
+addressRouter.route("/").get(getUserAddress).post(addUserAddress);
 addressRouter
   .route("/:addressId")
   .delete(removeUserAddress)
