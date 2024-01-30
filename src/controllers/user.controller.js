@@ -31,8 +31,6 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
 
-  console.log({ username, email, password, confirmPassword });
-
   if (
     !(
       username?.trim() ||
@@ -53,8 +51,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   if (password?.length < 8) {
-    console.log("i am in");
-    return res.status(200).json({
+    return res.status(400).json({
       success: false,
       message: "Password must be at least 8 characters",
       data: {},
@@ -65,7 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
     return res
       .status(400)
       .json(
-        new ApiResponse(400, {}, "Password and confirm password do not match")
+        new ApiError(400, {}, "Password and confirm password do not match")
       );
   }
 
