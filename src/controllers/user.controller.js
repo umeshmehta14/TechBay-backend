@@ -51,9 +51,11 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   if (password?.length < 8) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, {}, "Password must be at least 8 characters"));
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 8 characters",
+      data: {},
+    });
   }
 
   if (password !== confirmPassword) {
