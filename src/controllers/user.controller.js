@@ -7,7 +7,7 @@ import { isValidEmail } from "../utils/isValidEmail.js";
 
 const options = {
   httpOnly: true,
-  secure: false,
+  secure: true,
 };
 
 const generateAccessAndRefreshToken = async (userId) => {
