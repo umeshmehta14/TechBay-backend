@@ -9,6 +9,7 @@ import {
   getUserWishlist,
   loginUser,
   logoutUser,
+  refreshAccessToken,
   registerUser,
   removeProductFromCart,
   removeProductFromWishlist,
@@ -22,6 +23,7 @@ userRouter.route("/").get(verifyJwt, getCurrentUser);
 userRouter.route("/register").post(registerUser);
 userRouter.route("/login").post(loginUser);
 userRouter.route("/logout").get(verifyJwt, logoutUser);
+userRouter.route("/refresh-token").post(refreshAccessToken);
 
 userRouter.route("/wishlist").get(verifyJwt, getUserWishlist);
 userRouter

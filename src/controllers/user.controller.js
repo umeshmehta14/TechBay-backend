@@ -1,4 +1,4 @@
-import mongoose, { isValidObjectId } from "mongoose";
+import { isValidObjectId } from "mongoose";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -7,7 +7,7 @@ import { isValidEmail } from "../utils/isValidEmail.js";
 
 const options = {
   httpOnly: true,
-  secure: true,
+  secure: false,
 };
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -39,7 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
       confirmPassword?.trim()
     )
   ) {
-    return res.status(400).json(new ApiError(400, "Invalid credentials"));
+    return res.status(400).json(new ApiError(400, {}, "Invalid credentials"));
   }
 
   if (!isValidEmail(email)) {
@@ -98,22 +98,24 @@ const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email) {
-    throw new ApiError(400, "email is required");
+    return res.status(400).json(new ApiError(400, {}, "Email is required"));
   }
 
   if (!isValidEmail(email)) {
-    throw new ApiError(400, "invalid email address");
+    return res.status(400).json(new ApiError(400, {}, "Invalid email address"));
   }
 
   const user = await User.findOne({ email });
   if (!user) {
-    throw new ApiError(404, "user not found");
+    return res.status(400).json(new ApiError(400, {}, "User not found"));
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid user credentials");
+    return res
+      .status(401)
+      .json(new ApiError(400, {}, "Invalid user credentials"));
   }
 
   const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
