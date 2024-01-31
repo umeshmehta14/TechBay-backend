@@ -140,8 +140,6 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  console.log("hello begore");
-
   await User.findByIdAndUpdate(
     req.user?._id,
     {
@@ -149,8 +147,6 @@ const logoutUser = asyncHandler(async (req, res) => {
     },
     { new: true }
   );
-
-  console.log("hello", req.user?._id);
 
   return res
     .status(200)
