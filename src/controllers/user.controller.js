@@ -88,7 +88,7 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         201,
-        { createdUser, accessToken },
+        { createdUser, accessToken, refreshToken },
         "user created successfully"
       )
     );
@@ -141,7 +141,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
-    req.user._id,
+    req.user?._id,
     {
       $unset: { refreshToken: 1 },
     },
