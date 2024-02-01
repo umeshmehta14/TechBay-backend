@@ -224,9 +224,17 @@ const filteredProducts = asyncHandler(async (req, res) => {
   );
 });
 
-const getBrandsName = asyncHandler(async (req, res) => {
+const getBrandsName = asyncHandler(async (_, res) => {
   const uniqueBrands = await Product.distinct("brand");
-  res.status(200).json({ brands: uniqueBrands });
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { brands: uniqueBrands },
+        "All Brands Name fetched successfully"
+      )
+    );
 });
 
 export { getProductById, getFeaturedProducts, filteredProducts, getBrandsName };
