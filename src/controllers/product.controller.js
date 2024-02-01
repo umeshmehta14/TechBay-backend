@@ -126,9 +126,10 @@ const filteredProducts = asyncHandler(async (req, res) => {
     includeOutStock,
     arrangeType,
     searchValue,
-    page = 1,
     limit = 8,
   } = req.query;
+
+  let { page = 1 } = req.query;
 
   if (arrangeType && !["LTH", "HTL"].includes(arrangeType?.toString())) {
     throw new ApiError(400, "arrangeType must be one of LTH or HTL");
@@ -191,8 +192,6 @@ const filteredProducts = asyncHandler(async (req, res) => {
     }
   }
 
-  const skip = (page - 1) * limit;
-
   const products = await Product.find(filter);
 
   if (!products) {
@@ -200,6 +199,12 @@ const filteredProducts = asyncHandler(async (req, res) => {
   }
 
   const totalPage = Math.ceil(products?.length / Number(limit));
+
+  if (totalPage < page) {
+    page = 1;
+  }
+
+  const skip = (page - 1) * limit;
 
   const paginatedProducts = await Product.find(filter)
     .sort(sortOptions)
@@ -216,7 +221,7 @@ const filteredProducts = asyncHandler(async (req, res) => {
       {
         products: paginatedProducts,
         totalPage,
-        currentPage: totalPage < page ? 1 : page,
+        currentPage: page,
         productFetched: products?.length,
       },
       "products fetched successfully"
