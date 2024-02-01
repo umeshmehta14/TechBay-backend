@@ -78,8 +78,8 @@ const getSearchedProducts = asyncHandler(async (req, res) => {
     },
   ]);
 
-  if (products?.length === 0) {
-    throw new ApiError(400, "No products found");
+  if (!products) {
+    throw new ApiError(500, "Internal Error");
   }
 
   return res
@@ -237,4 +237,10 @@ const getBrandsName = asyncHandler(async (_, res) => {
     );
 });
 
-export { getProductById, getFeaturedProducts, filteredProducts, getBrandsName };
+export {
+  getProductById,
+  getFeaturedProducts,
+  filteredProducts,
+  getBrandsName,
+  getSearchedProducts,
+};
