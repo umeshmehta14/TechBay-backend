@@ -26,6 +26,67 @@ const getProductById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, product, "product fetched successfully"));
 });
 
+const getSearchedProducts = asyncHandler(async (req, res) => {
+  const { query } = req.params;
+
+  if (!query?.trim()) {
+    throw new ApiError(400, "Invalid query");
+  }
+
+  const products = await Product.aggregate([
+    {
+      $match: {
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { description: { $regex: query, $options: "i" } },
+          { brand: { $regex: query, $options: "i" } },
+          { category: { $regex: query, $options: "i" } },
+          {
+            $expr: {
+              $lt: [
+                { $toDouble: "$price" },
+                {
+                  $cond: {
+                    if: {
+                      $regexMatch: { input: query, regex: /^\d+(\.\d+)?$/ },
+                    },
+                    then: parseFloat(query),
+                    else: 0,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $expr: {
+              $lt: [
+                { $toDouble: "$rating" },
+                {
+                  $cond: {
+                    if: {
+                      $regexMatch: { input: query, regex: /^\d+(\.\d+)?$/ },
+                    },
+                    then: parseFloat(query),
+                    else: 0,
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  if (products?.length === 0) {
+    throw new ApiError(400, "No products found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, products, "products fetched successfully"));
+});
+
 const getFeaturedProducts = asyncHandler(async (_, res) => {
   const featuredProductsList = [
     "65b7f8c11c6e62280db158ed",
@@ -163,4 +224,9 @@ const filteredProducts = asyncHandler(async (req, res) => {
   );
 });
 
-export { getProductById, getFeaturedProducts, filteredProducts };
+const getBrandsName = asyncHandler(async (req, res) => {
+  const uniqueBrands = await Product.distinct("brand");
+  res.status(200).json({ brands: uniqueBrands });
+});
+
+export { getProductById, getFeaturedProducts, filteredProducts, getBrandsName };
