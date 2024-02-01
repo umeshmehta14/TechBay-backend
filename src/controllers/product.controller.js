@@ -210,6 +210,10 @@ const filteredProducts = asyncHandler(async (req, res) => {
     throw new ApiError(500, "internal server error");
   }
 
+  if (totalPage < page) {
+    page = 1;
+  }
+
   return res.status(200).json(
     new ApiResponse(
       200,
