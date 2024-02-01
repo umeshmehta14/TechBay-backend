@@ -126,9 +126,10 @@ const filteredProducts = asyncHandler(async (req, res) => {
     includeOutStock,
     arrangeType,
     searchValue,
-    page = 1,
     limit = 8,
   } = req.query;
+
+  let { page = 1 } = req.query;
 
   if (arrangeType && !["LTH", "HTL"].includes(arrangeType?.toString())) {
     throw new ApiError(400, "arrangeType must be one of LTH or HTL");
