@@ -126,10 +126,9 @@ const filteredProducts = asyncHandler(async (req, res) => {
     includeOutStock,
     arrangeType,
     searchValue,
+    page = 1,
     limit = 8,
   } = req.query;
-
-  let { page = 1 } = req.query;
 
   if (arrangeType && !["LTH", "HTL"].includes(arrangeType?.toString())) {
     throw new ApiError(400, "arrangeType must be one of LTH or HTL");
@@ -211,17 +210,13 @@ const filteredProducts = asyncHandler(async (req, res) => {
     throw new ApiError(500, "internal server error");
   }
 
-  if (totalPage < page) {
-    page = 1;
-  }
-
   return res.status(200).json(
     new ApiResponse(
       200,
       {
         products: paginatedProducts,
         totalPage,
-        currentPage: page,
+        currentPage: totalPage < page ? 1 : page,
         productFetched: products?.length,
       },
       "products fetched successfully"
