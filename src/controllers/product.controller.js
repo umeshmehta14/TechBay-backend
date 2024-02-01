@@ -119,8 +119,8 @@ const getFeaturedProducts = asyncHandler(async (_, res) => {
 const filteredProducts = asyncHandler(async (req, res) => {
   const {
     rating,
-    categoryFilter,
-    brandFilter,
+    category,
+    brand,
     price,
     trending,
     includeOutStock,
@@ -165,12 +165,12 @@ const filteredProducts = asyncHandler(async (req, res) => {
     filter.price = { $lte: parseFloat(price) };
   }
 
-  if (categoryFilter) {
-    filter.category = { $in: categoryFilter.split(",") };
+  if (category) {
+    filter.category = { $in: category.split(",") };
   }
 
-  if (brandFilter) {
-    filter.brand = { $in: brandFilter.split(",") };
+  if (brand) {
+    filter.brand = { $in: brand.split(",") };
   }
 
   if (searchValue) {
