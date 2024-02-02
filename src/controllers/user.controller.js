@@ -273,7 +273,7 @@ const removeProductFromWishlist = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Product id is not valid");
   }
 
-  const wishlist = await User.findByIdAndUpdate(
+  const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $pull: {
@@ -281,15 +281,21 @@ const removeProductFromWishlist = asyncHandler(async (req, res) => {
       },
     },
     { new: true }
-  );
+  ).populate("wishlist");
 
-  if (!wishlist) {
+  if (!user) {
     throw new ApiError(500, "something went wrong while removing product");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "product removed successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { wishlist: user.wishlist },
+        "product removed successfully"
+      )
+    );
 });
 
 const clearWishlist = asyncHandler(async (req, res) => {
