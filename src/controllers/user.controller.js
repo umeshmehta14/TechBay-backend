@@ -310,7 +310,7 @@ const clearWishlist = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "wishlist cleared successfully"));
+    .json(new ApiResponse(200, [], "wishlist cleared successfully"));
 });
 
 const getUserCart = asyncHandler(async (req, res) => {
