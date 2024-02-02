@@ -379,7 +379,7 @@ const removeProductFromCart = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Product id is not valid");
   }
 
-  const cart = await User.findByIdAndUpdate(
+  const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $pull: {
@@ -387,15 +387,17 @@ const removeProductFromCart = asyncHandler(async (req, res) => {
       },
     },
     { new: true }
-  );
+  ).populate("cart.product");
 
-  if (!cart) {
+  if (!user) {
     throw new ApiError(500, "something went wrong while removing product");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "product removed successfully"));
+    .json(
+      new ApiResponse(200, { cart: user.cart }, "product removed successfully")
+    );
 });
 
 const updateCartQuantity = asyncHandler(async (req, res) => {
