@@ -401,7 +401,7 @@ const removeProductFromCart = asyncHandler(async (req, res) => {
 });
 
 const updateCartQuantity = asyncHandler(async (req, res) => {
-  const { productId, type } = req.params;
+  const { productId, quantity } = req.params;
 
   if (!productId) {
     throw new ApiError(400, "Product id is required");
@@ -411,11 +411,12 @@ const updateCartQuantity = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Product id is not valid");
   }
 
-  if (!["increment", "decrement"].includes(type.toString())) {
-    throw new ApiError(
-      400,
-      "Sorted type must be one of increment or decrement"
-    );
+  if (!quantity) {
+    throw new ApiError(400, "Product id is not valid");
+  }
+
+  if (Number(quantity) === 10) {
+    throw new ApiError(400, "Maximum allowed quantity for this product is 10");
   }
 
   const user = await User.findById(req.user?._id);
@@ -427,20 +428,7 @@ const updateCartQuantity = asyncHandler(async (req, res) => {
     throw new ApiError(400, "product not found");
   }
 
-  if (type === "increment") {
-    if (inCart.quantity === 10) {
-      throw new ApiError(
-        400,
-        "Maximum allowed quantity for this product is 10"
-      );
-    }
-    inCart.quantity += 1;
-  } else {
-    if (inCart.quantity === 1) {
-      throw new ApiError(400, "quantity cannot be negative");
-    }
-    inCart.quantity -= 1;
-  }
+  inCart.quantity = Number(quantity);
 
   await user.save({ validateBeforeSave: false });
 

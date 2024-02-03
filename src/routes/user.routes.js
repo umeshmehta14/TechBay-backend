@@ -40,7 +40,7 @@ userRouter
   .route("/remove/cart/:productId")
   .patch(verifyJwt, removeProductFromCart);
 userRouter
-  .route("/update-quantity/cart/:type/:productId")
+  .route("/update-quantity/cart/:quantity/:productId")
   .patch(verifyJwt, updateCartQuantity);
 userRouter.route("/clear/cart").patch(verifyJwt, clearCart);
 
