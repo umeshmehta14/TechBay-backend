@@ -35,19 +35,16 @@ const addUserAddress = asyncHandler(async (req, res) => {
     throw new ApiError(500, "something went wrong while adding a new address");
   }
 
-  const existingAddress = await Address.findById(addedAddress?._id).select(
-    "-owner"
-  );
+  const addresses = await Address.find({ owner: userId }).select("-owner");
 
   return res
     .status(201)
-    .json(
-      new ApiResponse(201, existingAddress, "Address created successfully")
-    );
+    .json(new ApiResponse(201, addresses, "Address created successfully"));
 });
 
 const removeUserAddress = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
+  const userId = req.user?._id;
 
   if (!addressId) {
     throw new ApiError(400, "address id is required");
@@ -59,13 +56,15 @@ const removeUserAddress = asyncHandler(async (req, res) => {
 
   const deletedAddress = await Address.findByIdAndDelete(addressId);
 
+  const addresses = await Address.find({ owner: userId }).select("-owner");
+
   if (!deletedAddress) {
     throw new ApiError(500, "something went wrong while deleting address");
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "Address deleted successfully"));
+    .json(new ApiResponse(200, addresses, "Address deleted successfully"));
 });
 
 const getUserAddress = asyncHandler(async (req, res) => {
@@ -104,6 +103,7 @@ const updateAddress = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
   const { name, address, mobile, city, state, pincode, alternatemobile, type } =
     req.body;
+  const userId = req.user?._id;
 
   if (!addressId) {
     throw new ApiError(400, "address id is required");
@@ -139,15 +139,16 @@ const updateAddress = asyncHandler(async (req, res) => {
       },
     },
     { new: true }
-  ).select("-owner");
-
+  );
   if (!updatedAddress) {
     throw new ApiError(500, "something went wrong while updating address");
   }
 
+  const addresses = await Address.find({ owner: userId }).select("-owner");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, updatedAddress, "Address updated successfully"));
+    .json(new ApiResponse(200, addresses, "Address updated successfully"));
 });
 
 export { addUserAddress, getUserAddress, removeUserAddress, updateAddress };
