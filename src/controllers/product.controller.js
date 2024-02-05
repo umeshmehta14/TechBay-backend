@@ -173,6 +173,11 @@ const filteredProducts = asyncHandler(async (req, res) => {
   if (brand) {
     filter.brand = { $in: brand.split(",") };
   }
+  if (price) {
+  }
+
+  if (rating) {
+  }
 
   if (searchValue) {
     filter.$or = [
@@ -181,6 +186,36 @@ const filteredProducts = asyncHandler(async (req, res) => {
       { brand: { $regex: searchValue, $options: "i" } },
       { category: { $regex: searchValue, $options: "i" } },
     ];
+
+    filter.$expr = {
+      $lt: [
+        { $toDouble: "$price" },
+        {
+          $cond: {
+            if: {
+              $regexMatch: { input: searchValue, regex: /^\d+(\.\d+)?$/ },
+            },
+            then: searchValue,
+            else: 0,
+          },
+        },
+      ],
+    };
+
+    filter.$expr = {
+      $lt: [
+        { $toDouble: "$rating" },
+        {
+          $cond: {
+            if: {
+              $regexMatch: { input: searchValue, regex: /^\d+(\.\d+)?$/ },
+            },
+            then: searchValue,
+            else: 0,
+          },
+        },
+      ],
+    };
   }
 
   const sortOptions = {};
