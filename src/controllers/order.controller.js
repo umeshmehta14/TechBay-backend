@@ -76,6 +76,11 @@ const getOrder = asyncHandler(async (req, res) => {
       },
     },
     {
+      $set: {
+        address: { $arrayElemAt: ["$address", 0] },
+      },
+    },
+    {
       $unwind: "$products",
     },
     {
