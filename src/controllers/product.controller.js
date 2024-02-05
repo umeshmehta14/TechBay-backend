@@ -185,37 +185,39 @@ const filteredProducts = asyncHandler(async (req, res) => {
       { description: { $regex: searchValue, $options: "i" } },
       { brand: { $regex: searchValue, $options: "i" } },
       { category: { $regex: searchValue, $options: "i" } },
+      {
+        $expr: {
+          $lt: [
+            { $toDouble: "$price" },
+            {
+              $cond: {
+                if: {
+                  $regexMatch: { input: searchValue, regex: /^\d+(\.\d+)?$/ },
+                },
+                then: parseFloat(searchValue),
+                else: 0,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $expr: {
+          $lt: [
+            { $toDouble: "$rating" },
+            {
+              $cond: {
+                if: {
+                  $regexMatch: { input: searchValue, regex: /^\d+(\.\d+)?$/ },
+                },
+                then: parseFloat(searchValue),
+                else: 0,
+              },
+            },
+          ],
+        },
+      },
     ];
-
-    filter.$expr = {
-      $lt: [
-        { $toDouble: "$price" },
-        {
-          $cond: {
-            if: {
-              $regexMatch: { input: searchValue, regex: /^\d+(\.\d+)?$/ },
-            },
-            then: searchValue,
-            else: 0,
-          },
-        },
-      ],
-    };
-
-    filter.$expr = {
-      $lt: [
-        { $toDouble: "$rating" },
-        {
-          $cond: {
-            if: {
-              $regexMatch: { input: searchValue, regex: /^\d+(\.\d+)?$/ },
-            },
-            then: searchValue,
-            else: 0,
-          },
-        },
-      ],
-    };
   }
 
   const sortOptions = {};
