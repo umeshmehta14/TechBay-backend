@@ -8,7 +8,7 @@ const addOrder = asyncHandler(async (req, res) => {
   const { paymentId, products, amount, address } = req.body;
   const userId = req.user?._id;
 
-  if (orderList?.length === 0) {
+  if (products?.length === 0) {
     throw new ApiError(400, "Please add items to the order before placing it.");
   }
 
