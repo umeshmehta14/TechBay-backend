@@ -99,6 +99,7 @@ const getOrder = asyncHandler(async (req, res) => {
     {
       $group: {
         _id: "$_id",
+        createdAt: { $first: "$createdAt" },
         address: { $first: "$address" },
         paymentId: { $first: "$paymentId" },
         amount: { $first: "$amount" },
