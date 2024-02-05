@@ -415,7 +415,7 @@ const updateCartQuantity = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Product id is not valid");
   }
 
-  if (Number(quantity) === 10) {
+  if (Number(quantity) > 10) {
     throw new ApiError(400, "Maximum allowed quantity for this product is 10");
   }
 
