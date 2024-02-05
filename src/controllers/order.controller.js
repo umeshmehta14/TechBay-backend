@@ -28,8 +28,8 @@ const addOrder = asyncHandler(async (req, res) => {
     address: address,
     paymentId: paymentId,
     products: orderList.map((item) => ({
-      product: item.product,
-      quantity: item.quantity,
+      product: item?.product,
+      quantity: item?.quantity,
     })),
     amount: amount,
   };
