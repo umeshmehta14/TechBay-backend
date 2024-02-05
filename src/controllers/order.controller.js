@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Order } from "../models/order.model.js";
 
 const addOrder = asyncHandler(async (req, res) => {
-  const { paymentId, orderList, amount, address } = req.body;
+  const { paymentId, products, amount, address } = req.body;
   const userId = req.user?._id;
 
   if (orderList?.length === 0) {
@@ -27,7 +27,7 @@ const addOrder = asyncHandler(async (req, res) => {
     owner: userId,
     address: address,
     paymentId: paymentId,
-    products: orderList.map((item) => ({
+    products: products.map((item) => ({
       product: item?.product,
       quantity: item?.quantity,
     })),
