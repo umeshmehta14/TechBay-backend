@@ -1,10 +1,12 @@
 import { isValidObjectId } from "mongoose";
+import { jwtDecode } from "jwt-decode";
+import jwt from "jsonwebtoken";
+
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { isValidEmail } from "../utils/isValidEmail.js";
-import jwt from "jsonwebtoken";
 
 const options = {
   httpOnly: true,
@@ -154,6 +156,43 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User logout seccessfully"));
+});
+
+const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+  const userResponse = jwtDecode(credential.credential);
+  const email = userResponse.email;
+  if (!email) {
+    return res.status(400).json(new ApiError(400, {}, "Email is required"));
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json(new ApiError(400, {}, "Invalid email address"));
+  }
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).json(new ApiError(400, {}, "User not found"));
+  }
+
+  const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, refreshToken, accessToken },
+        "User logged in successfully"
+      )
+    );
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -478,4 +517,5 @@ export {
   removeProductFromCart,
   clearCart,
   refreshAccessToken,
+  googleLogin,
 };

@@ -7,6 +7,7 @@ import {
   getCurrentUser,
   getUserCart,
   getUserWishlist,
+  googleLogin,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -24,6 +25,7 @@ userRouter.route("/register").post(registerUser);
 userRouter.route("/login").post(loginUser);
 userRouter.route("/logout").get(verifyJwt, logoutUser);
 userRouter.route("/refresh-token").post(refreshAccessToken);
+userRouter.route("/google-login").post(googleLogin);
 
 userRouter.route("/wishlist").get(verifyJwt, getUserWishlist);
 userRouter
