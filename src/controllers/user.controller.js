@@ -174,6 +174,9 @@ const googleLogin = asyncHandler(async (req, res) => {
     return res.status(400).json(new ApiError(400, {}, "User not found"));
   }
 
+  user.image = userResponse.picture;
+  await user.save();
+
   const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
     user._id
   );

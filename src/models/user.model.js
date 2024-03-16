@@ -23,6 +23,10 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: String,
+      default: "",
+    },
     cart: [
       {
         product: {
