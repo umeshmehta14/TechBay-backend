@@ -1,5 +1,5 @@
 import { isValidObjectId } from "mongoose";
-import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 import jwt from "jsonwebtoken";
 
 import { User } from "../models/user.model.js";
@@ -165,7 +165,7 @@ const googleLogin = asyncHandler(async (req, res) => {
     "https://www.googleapis.com/oauth2/v3/userinfo",
     {
       headers: {
-        Authorization: `Bearer ${codeResponse.access_token}`,
+        Authorization: `Bearer ${codeResponse?.access_token}`,
       },
     }
   );
