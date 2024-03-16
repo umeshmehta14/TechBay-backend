@@ -159,9 +159,17 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const googleLogin = asyncHandler(async (req, res) => {
-  const { credential } = req.body;
-  const userResponse = jwtDecode(credential.credential);
-  const email = userResponse.email;
+  const { codeResponse } = req.body;
+
+  const { data } = await axios.get(
+    "https://www.googleapis.com/oauth2/v3/userinfo",
+    {
+      headers: {
+        Authorization: `Bearer ${codeResponse.access_token}`,
+      },
+    }
+  );
+  const email = data.email;
   if (!email) {
     return res.status(400).json(new ApiError(400, {}, "Email is required"));
   }
@@ -174,7 +182,7 @@ const googleLogin = asyncHandler(async (req, res) => {
     return res.status(400).json(new ApiError(400, {}, "User not found"));
   }
 
-  user.image = userResponse.picture;
+  user.image = data.picture;
   await user.save();
 
   const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
